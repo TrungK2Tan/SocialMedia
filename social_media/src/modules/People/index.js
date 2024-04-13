@@ -61,16 +61,10 @@ const People = () => {
                         <p className='my-4'>{user?.email}</p>
                     </div>
                     <div className=' flex justify-around w-[600px] text-center my-4 border'>
-                        {
-                            stats.map(({ id, name, stats }) => {
-                                return (
-                                    <div key={id}>
-                                        <h4 className="font-bold text-2xl">{stats}</h4>
-                                        <p className="font-light text-sm text-lg">{name}</p>
-                                    </div>
-                                )
-                            })
-                        }
+                        <div>
+                            <h4 className="font-bold text-2xl">{posts.length}</h4>
+                            <p className="font-light text-sm text-lg">post</p>
+                        </div>
                     </div>
                     <div>
                         {

@@ -1,0 +1,144 @@
+.post-container {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .post-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .post-container:hover .post-overlay {
+    opacity: 1;
+  }
+  
+  .post-overlay-text {
+    color: white;
+    font-size: 18px;
+  }
+  
+  .post-action {
+    display: none;
+  }
+  
+  .post-container:hover .post-action {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+  }
+  .post-image {
+    width: 300px; /* Thiết lập chiều rộng của hình ảnh */
+    height: 300px; /* Thiết lập chiều cao của hình ảnh */
+    object-fit: cover; /* Đảm bảo hình ảnh được căn chỉnh và giữ nguyên tỷ lệ khung hình */
+    border-radius: 8px; /* Bo góc cho hình ảnh */
+  }
+  
+  .post-container {
+    width: 300px; /* Thiết lập chiều rộng của khung chứa hình ảnh */
+    height: 300px; /* Thiết lập chiều cao của khung chứa hình ảnh */
+    margin: 10px; /* Khoảng cách giữa các khung chứa hình ảnh */
+    overflow: hidden; /* Ẩn phần dư thừa nếu hình ảnh vượt quá kích thước */
+  }
+  
+  .post-overlay {
+    position: absolute; /* Xác định vị trí tuyệt đối cho lớp chồng */
+    top: 0; /* Đặt ở phía trên của khung chứa hình ảnh */
+    left: 0; /* Đặt ở phía trái của khung chứa hình ảnh */
+    width: 100%; /* Chiều rộng tối đa của lớp chồng */
+    height: 100%; /* Chiều cao tối đa của lớp chồng */
+    background-color: rgba(0, 0, 0, 0.5); /* Màu nền với độ trong suốt */
+    display: flex; /* Hiển thị các phần tử con theo hàng ngang */
+    justify-content: center; /* Canh giữa theo chiều ngang */
+    align-items: center; /* Canh giữa theo chiều dọc */
+    opacity: 0; /* Ẩn lớp chồng ban đầu */
+    transition: opacity 0.3s ease; /* Hiệu ứng chuyển đổi opacity */
+  }
+  
+  .post-container:hover .post-overlay {
+    opacity: 1; /* Hiện lớp chồng khi hover */
+  }
+  
+  .post-overlay-text {
+    color: white; /* Màu chữ trắng */
+    font-size: 18px; /* Kích thước chữ */
+    text-align: center; /* Căn giữa văn bản */
+  }
+  .post-overlay-text {
+    display: none;
+}
+
+.post-container:hover .post-overlay-text {
+  display: block;
+}
+
+.post-overlay:hover .like-comment-icons svg {
+    fill: #fff; /* Đổi màu của biểu tượng thành màu trắng */
+    stroke: #fff; /* Đổi màu của biểu tượng thành màu trắng */
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content img {
+  width: 400px;
+  height: 400px;
+}
+
+.modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Một lớp mờ màu đen có độ trong suốt 50% */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.more-options {
+  position: absolute;
+  top: 10px; /* Điều chỉnh vị trí top cần thiết */
+  right: 10px; /* Điều chỉnh vị trí left cần thiết */
+  z-index: 1; /* Đảm bảo dấu ba chấm hiển thị trên hình ảnh */
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: black;
+  border-radius: 50%;
+  margin-right: 5px; /* Khoảng cách giữa các chấm */
+}
+
+.small-button {
+  padding: 0.5rem 1rem; /* Điều chỉnh kích thước của nút */
+  font-size: 0.875rem; /* Điều chỉnh kích thước của chữ */
+}
+
+.small-button svg {
+  width: 1rem; /* Điều chỉnh kích thước của biểu tượng SVG */
+  height: 1rem;
+}

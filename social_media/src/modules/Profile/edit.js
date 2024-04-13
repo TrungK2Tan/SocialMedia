@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Input from "../../components/input"; // Đường dẫn nhập cho thành phần Input đã được sửa
 import Button from "../../components/Button";
+import {  useNavigate } from 'react-router-dom'
 
 const EditProfile = () => {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [image, setAvatar] = useState("");
@@ -87,6 +89,7 @@ const EditProfile = () => {
             }
     
             alert('Profile updated successfully!');
+            navigate('/profile'); // Chuyển hướng đến trang profile
         } catch (error) {
             console.error('Error updating profile:', error);
             setError('Failed to update profile. Please try again later.');
@@ -96,8 +99,6 @@ const EditProfile = () => {
     };
     
     
-    
-
     return (
         <div className='flex justify-center items-center h-screen bg-black'>
             <div className='w-[800px] h-[600px] p-6 bg-white'>

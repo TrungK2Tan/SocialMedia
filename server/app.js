@@ -13,10 +13,9 @@ const app = express()
 
 //Import Schemas
 const Users = require('./models/userSchema');
-const Conversations = require('./models/conversationSchema');
 const Post = require('./models/postSchema');
+const Conversations = require('./models/conversationSchema');
 const Messages = require('./models/messageSchema');
-const Comment = require('./models/commentSchema');
 //connect to db
 require('./db/connection')
 //import Middlewares
@@ -29,7 +28,6 @@ app.use(cookieParser())
 app.use(cors())
 
 const port = process.env.PORT || 8000;
-
 //socket.io
 let users = [];
 io.on('connection', socket => {
@@ -72,7 +70,6 @@ io.on('connection', socket => {
         io.emit('getUsers', users);
     });
 });
-
 app.post('/api/register', async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
@@ -101,60 +98,60 @@ app.post('/api/register', async (req, res, next) => {
 });
 
 
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body
+app.post('/api/login',async(req,res) =>{
+    const{email,password} = req.body
     const user = await Users.findOne({ email });
-    if (!user) {
+    if(!user){
         res.status(401).send('User or password is invalid')
-    } else {
-        const validate = await bcryptjs.compare(password, user.password)
-        if (!validate) {
+    }else{
+        const validate =await bcryptjs.compare(password,user.password)
+        if(!validate){
             res.status(401).send('User or password is invalid')
-        } else {
+        }else{
             const payload = {
                 id: user._id,
-                username: user.username
+                username:user.username
             }
             const JWT_SECTRET_KEY = process.env.JWT_SECTRET_KEY || 'THIS_IS_THE_SECRET_KEY_OF_JWT';
             jsonwebtoken.sign(
                 payload,
                 JWT_SECTRET_KEY,
-                { expiresIn: 86400 },
-                (err, token) => {
-                    if (err) res.json({ message: err })
-                    return res.status(200).json({ user, token })
+                {expiresIn: 86400},
+                (err,token)=>{
+                    if(err) res.json({message:err})
+                    return res.status(200).json({user,token})
                 }
             )
         }
     }
 })
-app.post('/api/new-post', authenticate, async (req, res) => {
-    try {
-        const { caption, desc, url } = req.body;
-        const { user } = req
-        if (!caption || !desc || !url) {
+app.post('/api/new-post',authenticate, async (req,res) =>{
+    try{
+        const {caption, desc,url} = req.body;
+        const {user}=req
+        if(!caption || !desc || !url){
             res.status(400).send('Please fill all the fields')
         }
         const createPost = new Post({
             caption,
             description: desc,
             image: url,
-            user: user
+            user:user
         })
         await createPost.save()
         res.status(200).send('Create Post Successfully')
-    } catch (error) {
-        res.status(500).send('Error' + error)
+    }catch(error){
+        res.status(500).send('Error'+error)
     }
 })
 
-app.get('/api/profile', authenticate, async (req, res) => {
-    try {
-        const { user } = req;
-        const posts = await Post.find({ user: user._id }).populate("user", "_id, username")
+app.get('/api/profile',authenticate, async(req,res) =>{
+    try{
+        const {user} = req;
+        const posts = await Post.find({user:user._id}).populate("user","_id, username")
         // console.log(posts,'<= posts');
-        res.status(200).json({ posts, user });
-    } catch (error) {
+        res.status(200).json({posts,user});
+    }catch(error){
         res.status(500).send(error)
     }
 })
@@ -194,39 +191,43 @@ app.put('/api/update-profile', authenticate, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 app.get('/api/people', authenticate, async (req, res) => {
     try {
         const { username } = req.query;
-        const { user: follower } = req
+        const {user: follower} = req
         const user = await Users.findOne({ username });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
         const posts = await Post.find({ user: user._id });
-        const [isFollowed] = await Contacts.find({ follower: follower._id, followed: user._id })
-        console.log(isFollowed, 'isFollowed')
+        const [isFollowed] = await Contacts.find({follower:follower._id, followed:user._id})
+        console.log(isFollowed,'isFollowed')
         const userDetail = {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            image: user.image
-        };
-        res.status(200).json({ posts, userDetail, isFollowed: !!isFollowed });
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    image: user.image
+};
+        res.status(200).json({ posts, userDetail ,isFollowed: !! isFollowed});
     } catch (error) {
         res.status(500).send(error);
     }
 });
-app.get('/api/posts', authenticate, async (req, res) => {
-    try {
-        const { user } = req
-        const posts = await Post.find().populate('user', '_id username email image').sort({ '_id': -1 })
+
+
+app.get('/api/posts',authenticate, async(req,res) =>{
+    try{
+        const {user} = req
+        const posts = await Post.find().populate('user', '_id username email image').sort({'_id':-1})
 
         // console.log(posts,'<= posts');
-        res.status(200).json({ posts, user });
-    } catch (error) {
+        res.status(200).json({posts,user});
+    }catch(error){
         res.status(500).send(error)
     }
 })
+
 app.get('/api/users', authenticate, async (req, res) => {
     try {
         const loggedInUserId = req.user._id; // Lấy ID của người dùng hiện tại từ thông tin xác thực
@@ -242,18 +243,14 @@ app.get('/api/users', authenticate, async (req, res) => {
                             $match: {
                                 $expr: {
                                     $or: [
-                                        {
-                                            $and: [
-                                                { $eq: ['$follower', loggedInUserId] },
-                                                { $eq: ['$followed', '$$userId'] }
-                                            ]
-                                        },
-                                        {
-                                            $and: [
-                                                { $eq: ['$followed', loggedInUserId] },
-                                                { $eq: ['$follower', '$$userId'] }
-                                            ]
-                                        }
+                                        { $and: [
+                                            { $eq: ['$follower', loggedInUserId] },
+                                            { $eq: ['$followed', '$$userId'] }
+                                        ] },
+                                        { $and: [
+                                            { $eq: ['$followed', loggedInUserId] },
+                                            { $eq: ['$follower', '$$userId'] }
+                                        ] }
                                     ]
                                 }
                             }
@@ -267,7 +264,6 @@ app.get('/api/users', authenticate, async (req, res) => {
                     _id: 1,
                     username: 1,
                     email: 1,
-                    image: 1,
                     isFollowed: { $cond: { if: { $gt: [{ $size: '$followInfo' }, 0] }, then: true, else: false } } // Thêm trường isFollowed để xác định người dùng hiện tại có đang theo dõi người dùng này hay không
                 }
             }
@@ -301,47 +297,47 @@ app.get('/api/active-followers', authenticate, async (req, res) => {
 });
 
 app.post('/api/follow', authenticate, async (req, res) => {
-    try {
-        const { id } = req.body;
-        const { user } = req;
-        if (!id) return res.status(400).send('Id cannot be empty')
-        const [followedUser] = await Users.find({ _id: id })
+    try{
+        const {id} = req.body;
+        const {user} = req;
+        if(!id) return res.status(400).send('Id cannot be empty')
+        const [followedUser] =await Users.find({_id:id})
         const followUser = new Contacts({
             follower: user,
             followed: followedUser
         })
         await followUser.save()
-        res.status(200).json({ isFollowed: true })
+        res.status(200).json({isFollowed:true})
     } catch (error) {
         res.status(500).send('Internal Server Error');
     }
 })
 
 app.post('/api/unfollow', authenticate, async (req, res) => {
-    try {
-        const { id } = req.body;
-        const { user } = req;
-        if (!id) return res.status(400).send('Id cannot be empty')
-        await Contacts.deleteOne({ follower: user._id, followed: id })
+    try{
+        const {id} = req.body;
+        const {user} = req;
+        if(!id) return res.status(400).send('Id cannot be empty')
+        await Contacts.deleteOne({follower:user._id, followed: id})
 
-        res.status(200).json({ isFollowed: false })
+        res.status(200).json({isFollowed:false})
     } catch (error) {
         res.status(500).send('Internal Server Error');
     }
 })
 
 app.put('/api/like', authenticate, async (req, res) => {
-    try {
-        const { id } = req.body;
-        const { user } = req;
-        if (!id) return res.status(400).send('Id cannot be empty')
+    try{
+        const {id} = req.body;
+        const {user} = req;
+        if(!id) return res.status(400).send('Id cannot be empty')
 
-        const updatedPost = await Post.findOneAndUpdate({ _id: id }, {
-            $push: { likes: user._id }
-        }, { returnDocument: "after" }).populate('user', '_id username email')
+        const updatedPost = await Post.findOneAndUpdate({ _id: id},{
+            $push: {likes: user._id}
+        }, {returnDocument: "after" }).populate('user','_id username email')
 
         // await followUser.save()
-        res.status(200).json({ updatedPost })
+        res.status(200).json({updatedPost})
 
     } catch (error) {
         res.status(500).send('Internal Server Error');
@@ -349,17 +345,17 @@ app.put('/api/like', authenticate, async (req, res) => {
 })
 
 app.put('/api/dislike', authenticate, async (req, res) => {
-    try {
-        const { id } = req.body;
-        const { user } = req;
-        if (!id) return res.status(400).send('Id cannot be empty')
+    try{
+        const {id} = req.body;
+        const {user} = req;
+        if(!id) return res.status(400).send('Id cannot be empty')
 
-        const updatedPost = await Post.findOneAndUpdate({ _id: id }, {
-            $pull: { likes: user._id }
-        }, { returnDocument: "after" }).populate('user', '_id username email')
+        const updatedPost = await Post.findOneAndUpdate({ _id: id},{
+            $pull: {likes: user._id}
+        }, {returnDocument: "after" }).populate('user','_id username email')
 
         // await followUser.save()
-        res.status(200).json({ updatedPost })
+        res.status(200).json({updatedPost})
     } catch (error) {
         res.status(500).send('Internal Server Error');
     }
@@ -393,6 +389,71 @@ app.get('/api/following-stats', authenticate, async (req, res) => {
         res.status(200).json({ followingCount });
     } catch (error) {
         res.status(500).send('Internal Server Error');
+    }
+});
+
+app.put('/api/posts/:postId', authenticate, async (req, res) => {
+    try {
+        const { user } = req;
+        const { postId } = req.params;
+        const { caption, description, image } = req.body;
+
+        // Check if the user owns the post before allowing edit
+        const post = await Post.findOne({ _id: postId, user: user._id });
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found or you do not have permission to edit this post' });
+        }
+
+        // Update post fields
+        if (caption) {
+            post.caption = caption;
+        }
+        if (description) {
+            post.description = description;
+        }
+        if (image) {
+            post.image = image;
+        }
+
+        // Save updated post
+        const updatedPost = await post.save();
+
+        res.status(200).json({ message: 'Post updated successfully', post: updatedPost });
+    } catch (error) {
+        console.error('Error editing post:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.delete('/:postId', async (req, res) => {
+    try {
+        const deletedPost = await Post.findByIdAndDelete(req.params.postId);
+        if (!deletedPost) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+        res.json({ message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+// Server-side route to handle password update
+app.put('/api/editPassword', authenticate, async (req, res) => {
+    try {
+        const { user } = req;
+        const { newPassword } = req.body;
+
+        // Hash the new password
+        const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+        // Update user's password in the database
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 app.post('/api/conversation', async (req, res) => {
@@ -476,7 +537,36 @@ app.get('/api/alluser/:userId', async (req, res) => {
         console.log(error, "Error")
     }
 })
+app.get('/api/search', authenticate, async (req, res) => {
+    try {
+        const { user } = req;
+        const { q } = req.query; // Lấy từ khóa tìm kiếm từ các tham số truy vấn
 
+        // Tìm kiếm người dùng với username hoặc email chứa từ khóa
+        const userResults = await Users.find({
+            $or: [
+                { username: { $regex: new RegExp(q, 'i') } }, // Tìm kiếm username không phân biệt hoa thường
+                { email: { $regex: new RegExp(q, 'i') } } // Tìm kiếm email không phân biệt hoa thường
+            ]
+        }).select('_id username email image');
+
+        // Tìm kiếm bài viết với caption hoặc description chứa từ khóa
+        const postResults = await Post.find({
+            $or: [
+                { caption: { $regex: new RegExp(q, 'i') } }, // Tìm kiếm caption không phân biệt hoa thường
+                { description: { $regex: new RegExp(q, 'i') } } // Tìm kiếm description không phân biệt hoa thường
+            ]
+        }).populate('user', '_id username email image');
+
+        // Trả về kết quả cho client
+        res.status(200).json({ users: userResults, posts: postResults });
+    } catch (error) {
+        console.error('Error searching:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+    
 app.post('/api/comments/:postId', authenticate, async (req, res) => {
     try {
         const postId = req.params.postId; // Truy xuất postId từ req.params thay vì từ req.body

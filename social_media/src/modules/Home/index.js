@@ -19,6 +19,8 @@ const Home = () => {
     const [activeFollowers, setActiveFollowers] = useState([]);
     const [commentContent, setCommentContent] = useState('');
     const [commentForms, setCommentForms] = useState({});
+    const [searchQuery, setSearchQuery] = useState('');
+
     useEffect(() => {
         const fetchPostsStats = async () => {
             try {
@@ -184,7 +186,7 @@ const Home = () => {
     const { _id: loggedInUserId = '', username = '', email = '', image = '' } = user || {}
     const handleCommentChange = (e) => {
         setCommentContent(e.target.value);
-        
+
     };
     // Khi bạn cần hiển thị hoặc ẩn hộp bình luận cho một bài đăng
     const toggleCommentForm = (postId) => {
@@ -207,7 +209,7 @@ const Home = () => {
                 },
                 body: JSON.stringify({ text: commentContent })
             });
-    
+
             if (!response.ok) {
                 throw new Error('Failed to submit comment');
             }
@@ -218,6 +220,7 @@ const Home = () => {
                         return {
                             ...post,
                             comments: [...post.comments, comment]
+
                         };
                     }
                     return post;
@@ -257,6 +260,30 @@ const Home = () => {
         }
 
     }
+    const handleSearch = async () => {
+        try {
+            // Make API call with searchQuery
+            const response = await fetch(`http://localhost:8000/api/search?q=${searchQuery}`, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('user:token')}`
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch search results');
+            }
+            const searchData = await response.json();
+            // Redirect to search page and pass search results as state
+            navigate('/search', { state: { searchData } });
+        } catch (error) {
+            console.error('Error searching:', error);
+        }
+    };
+    
+    
+    
+
 
     return (
         <div className='h-screen bg-[#d2cfdf] flex overflow-hidden'>
@@ -269,9 +296,12 @@ const Home = () => {
                         :
                         <div className='h-[30%] flex justify-center items-center border-b'>
                             <div className='flex flex-col justify-around items-center'>
-                                <img src={image} alt="avt" style={{ width: '75px', height: '75px' }} className='border-4 rounded-[36px] p-2' />
-                                <h3>{username}</h3>
-                                <p className='my-4'>{email}</p>
+                                <img src={image} alt="avt" style={{ width: '100px', height: '100px' }} className='border-4 rounded-[50px] p-2'
+                                    onClick={() => {
+                                        navigate('/profile')
+                                    }} />
+                                {/* <h3>{username}</h3>
+                                <p className='my-4'>{email}</p> */}
                                 <div className=' h-[50px] flex justify-around w-[300px] text-center'>
 
                                     <div>
@@ -312,8 +342,14 @@ const Home = () => {
             <div className='w-[60%] overflow-scroll h-full scrollbar-hide'>
                 <div className='bg-white h-[75px] border-l flex justify-evenly items-center pt-4 sticky top-0 shadow-lg'>
                     <div className='flex justify-center items-center'>
-                        <Input placeholder='Enter your search' />
-                        <Button label={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-search"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>} className='mb-4 ml-4' />
+                        <Input
+                            placeholder='Enter your search'
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <Button label={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-search"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>}
+                            onClick={handleSearch}
+                            className='mb-4 ml-4' />
                     </div>
                     <Button
                         onClick={() => navigate('/new-post')}
@@ -329,7 +365,7 @@ const Home = () => {
                             <RingLoader />
                         </div>
                         :
-                        data?.map(({ _id = '', caption = '', description = '', image = '', user = {},comments = {}, likes = [] }, index) => {
+                        data?.map(({ _id = '', caption = '', description = '', image = '', user = {}, comments = {}, likes = [] }, index) => {
                             const isAlreadyLiked = likes.length > 0 && likes.includes(loggedInUserId);
                             return (
                                 <div className='bg-white w-[80%]  mx-auto mt-8 p-8'>
@@ -342,23 +378,24 @@ const Home = () => {
                                         </div>
                                     </div>
                                     <div className='border-b pb-4 mb-4'>
-                                    <p style={{fontSize: "17px", paddingBottom: "10px"}}>{description}</p>
+                                        <p style={{ fontSize: "17px", paddingBottom: "10px" }}>{description}</p>
                                         <img loading='lazy' src={image} alt="kakashi" className="rounded-2xl w-[100%]" />
                                         {/* <p>{user.username}: {caption}</p> */}
 
                                     </div>
+                                    {console.log(data)}
                                     {isCommentFormVisible(_id) && (
                                         <div className="mt-4" >
-                                        {comments.map((comment, commentIndex) => (
-                                            <div key={commentIndex} className="mb-2" style={{fontSize: "18px", margin: "5px 0px", border: "1px solid #ddd", borderRadius: "5px", padding: "5px"}}>
-                                                <div className="flex ">
-                                                    <img src={comment.user?.image} alt="avt" style={{ width: '40px', height: '40px' }} className='border-4 rounded-full p-1' />
-                                                    <div>
-                                                        <h3 className="font-bold" style={{fontSize: "18px", margin: "3px 10px 0"}}>{comments.user?.username}</h3>
-                                                        <p  style={{fontSize: "18px", margin: "0 10px 10px"}}>{comment.text}</p>
+                                            {comments.map((comment, commentIndex) => (
+                                                <div key={commentIndex} className="mb-2" style={{ fontSize: "18px", margin: "5px 0px", border: "1px solid #ddd", borderRadius: "5px", padding: "5px" }}>
+                                                    <div className="flex ">
+                                                        <img src={comment?.user?.image} alt="avt" style={{ width: '40px', height: '40px' }} className='border-4 rounded-full p-1' />
+                                                        <div>
+                                                            <h3 className="font-bold" style={{ fontSize: "18px", margin: "3px 10px 0" }}>{comments.user?.username}</h3>
+                                                            <p style={{ fontSize: "18px", margin: "0 10px 10px" }}>{comment.text}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             ))}
                                         </div>
 
@@ -384,13 +421,13 @@ const Home = () => {
                                             </svg> {likes?.length} Likes
                                         </div>
                                         <div className="flex cursor-pointer items-center" onClick={() => toggleCommentForm(_id)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-message-dots">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                            <path d="M4 21v-13a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-9l-4 4" />
-                                            <path d="M12 11l0 .01" />
-                                            <path d="M8 11l0 .01" />
-                                            <path d="M16 11l0 .01" />
-                                        </svg> {comments?.length} Comments
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-message-dots">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                <path d="M4 21v-13a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-9l-4 4" />
+                                                <path d="M12 11l0 .01" />
+                                                <path d="M8 11l0 .01" />
+                                                <path d="M16 11l0 .01" />
+                                            </svg> {comments?.length} Comments
                                         </div>
                                         <div className="flex cursor-pointer items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M6 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M18 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M8.7 10.7l6.6 -3.4" /><path d="M8.7 13.3l6.6 3.4" /></svg>10.5k Shares</div>
                                         <div className="flex cursor-pointer items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bookmark"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>10.5k Saved</div>

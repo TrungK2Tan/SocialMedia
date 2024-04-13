@@ -8,6 +8,8 @@ import People from "../modules/People";
 import EditProfile from "../modules/Profile/edit";
 import EditPost from "../modules/CreatePost/edit";
 import Message from "../modules/Message";
+import Search from "../modules/Search";
+import EditPassword from "../modules/Profile/editPassword";
 
 const PrivateRoute = ({children})=>{
     const isUserLoggedIn  = window.localStorage.getItem('user:token') || false
@@ -69,16 +71,33 @@ const Routes=()=>{
         {
             id: 8,
             name: 'editpost',
-            path: '/editpost',
+            path:'/editpost/:id',
             Component: <EditPost/>
         },
         {
             id: 9,
+            name: 'deletePost',
+            path:'/deletePost/:id',
+            Component: <deletePost/>
+        },
+        {
+            id: 10,
+            name: 'editPassword',
+            path:'/editPassword/:id',
+            Component: <EditPassword/>
+        },
+        {
+            id: 11,
             name: 'message',
-            path: '/message',
+            path:'/message',
             Component: <Message/>
         },
-
+        {
+            id: 12,
+            name: 'search',
+            path:'/search',
+            Component: <Search/>
+        }
     ]
     return(
         <Router>
